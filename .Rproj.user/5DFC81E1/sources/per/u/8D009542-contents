@@ -1,0 +1,32 @@
+library(caret)
+library(pROC)
+
+trainData$purchased <- factor(trainData$purchased, levels = c(0, 1))
+testData$purchased <- factor(testData$purchased, levels = c(0, 1))
+
+
+logreg_model <- glm(purchased ~ age + income + gender + web_visits, 
+                    data = trainData, family = binomial)
+
+
+logreg_prob <- predict(logreg_model, testData, type = "response")
+logreg_pred <- ifelse(logreg_prob > 0.6, 1, 0)  
+
+conf_matrix <- confusionMatrix(factor(logreg_pred), factor(testData$purchased))
+
+logreg_accuracy <- round(conf_matrix$overall["Accuracy"], 2)  
+logreg_sensitivity <- round(conf_matrix$byClass["Sensitivity"], 2)
+logreg_specificity <- round(conf_matrix$byClass["Specificity"], 2)
+logreg_f1 <- round(conf_matrix$byClass["F1"], 2)
+
+logreg_roc <- roc(testData$purchased, logreg_prob, levels = c(0, 1), direction = "<")
+logreg_auc <- round(auc(logreg_roc), 2)
+
+cat("Regresión Logística - Accuracy:", logreg_accuracy, "\n")
+cat("Regresión Logística - Sensibilidad:", logreg_sensitivity, "\n")
+cat("Regresión Logística - Especificidad:", logreg_specificity, "\n")
+cat("Regresión Logística - F1 Score:", logreg_f1, "\n")
+cat("Regresión Logística - AUC:", logreg_auc, "\n")
+
+plot(logreg_roc, main = "Curva ROC - Regresión Logística", col = "blue", lwd = 2)
+abline(a = 0, b = 1, col = "red", lty = 2)  

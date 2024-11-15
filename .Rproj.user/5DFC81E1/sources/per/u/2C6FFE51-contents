@@ -1,0 +1,44 @@
+# Cargar librerías necesarias
+library(caret)
+library(pROC)
+library(randomForest)
+
+# Convertir la variable objetivo a tipo factor
+trainData$purchased <- as.factor(trainData$purchased)
+testData$purchased <- as.factor(testData$purchased)
+
+# Entrenamiento del modelo de Random Forest
+rf_model <- randomForest(purchased ~ age + income + gender + web_visits, 
+                         data = trainData, 
+                         ntree = 500, 
+                         importance = TRUE)
+
+# Mostrar el modelo entrenado
+print(rf_model)
+
+# Predicción de probabilidades y etiquetas
+rf_prob <- predict(rf_model, testData, type = "prob")[, 2]
+rf_pred <- ifelse(rf_prob > 0.5, 1, 0)
+
+# Calcular la matriz de confusión y las métricas
+conf_matrix_rf <- confusionMatrix(factor(rf_pred), factor(testData$purchased))
+
+# Métricas de desempeño
+rf_accuracy <- conf_matrix_rf$overall["Accuracy"]
+rf_sensitivity <- conf_matrix_rf$byClass["Sensitivity"]
+rf_specificity <- conf_matrix_rf$byClass["Specificity"]
+rf_f1 <- conf_matrix_rf$byClass["F1"]
+
+# AUC (Área bajo la curva ROC)
+rf_roc <- roc(testData$purchased, rf_prob)
+rf_auc <- auc(rf_roc)
+
+# Mostrar resultados
+cat("Random Forest - Accuracy:", rf_accuracy, "\n")
+cat("Random Forest - Sensibilidad:", rf_sensitivity, "\n")
+cat("Random Forest - Especificidad:", rf_specificity, "\n")
+cat("Random Forest - F1 Score:", rf_f1, "\n")
+cat("Random Forest - AUC:", rf_auc, "\n")
+
+# Graficar la curva ROC
+plot(rf_roc, main = "Curva ROC - Random Forest", col = "green")

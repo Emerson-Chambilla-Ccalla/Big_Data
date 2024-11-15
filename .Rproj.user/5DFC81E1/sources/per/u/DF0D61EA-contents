@@ -1,0 +1,21 @@
+
+results <- data.frame(
+  Model = c("Regresión Logística", "Árbol de Decisión", "Random Forest"),
+  Accuracy = c(logreg_accuracy, tree_accuracy, rf_accuracy),
+  AUC = c(logreg_auc, tree_auc, rf_auc)
+)
+
+print(results)
+
+
+
+plot(logreg_roc, col = "blue", main = "Curvas ROC", lwd = 2)
+plot(tree_roc, col = "red", add = TRUE, lwd = 2)
+plot(rf_roc, col = "green", add = TRUE, lwd = 2)
+
+legend("bottomright", legend = c("Regresión Logística", "Árbol de Decisión", "Random Forest"), 
+       col = c("blue", "red", "green"), lwd = 2)
+
+results_long <- gather(results, key = "Metric", value = "Value", Accuracy, AUC)
+
+

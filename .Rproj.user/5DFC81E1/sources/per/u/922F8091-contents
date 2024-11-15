@@ -1,0 +1,36 @@
+# Cargar librerías necesarias
+library(caret)
+library(pROC)
+
+# Entrenamiento del modelo de Árbol de Decisión
+tree_model <- rpart(purchased ~ age + income + gender + web_visits, 
+                    data = trainData, method = "class")
+
+# Predicción de probabilidades y etiquetas
+tree_prob <- predict(tree_model, testData, type = "prob")[, 2]
+tree_pred <- ifelse(tree_prob > 0.5, 1, 0)
+
+# Calcular las métricas
+conf_matrix_tree <- confusionMatrix(factor(tree_pred), factor(testData$purchased))
+
+# Métricas de desempeño
+tree_accuracy <- conf_matrix_tree$overall["Accuracy"]
+tree_sensitivity <- conf_matrix_tree$byClass["Sensitivity"]
+tree_specificity <- conf_matrix_tree$byClass["Specificity"]
+tree_f1 <- conf_matrix_tree$byClass["F1"]
+
+# AUC (Área bajo la curva ROC)
+tree_roc <- roc(testData$purchased, tree_prob)
+tree_auc <- auc(tree_roc)
+
+# Mostrar resultados
+cat("Árbol de Decisión - Accuracy:", tree_accuracy, "\n")
+cat("Árbol de Decisión - Sensibilidad:", tree_sensitivity, "\n")
+cat("Árbol de Decisión - Especificidad:", tree_specificity, "\n")
+cat("Árbol de Decisión - F1 Score:", tree_f1, "\n")
+cat("Árbol de Decisión - AUC:", tree_auc, "\n")
+
+# Graficar la curva ROC
+plot(tree_roc, 
+     main = "Curva ROC - Árbol de Decisión", 
+     col = "red")
